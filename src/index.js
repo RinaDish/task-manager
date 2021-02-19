@@ -47,7 +47,7 @@ app.get("/users/:id", async (req, res) => {
   try {
     const user = await User.findById(_id);
     if (!user) return res.status(404).send();
-    es.send(user);
+    res.send(user);
   } catch (e) {
     res.status(500).send();
   }
@@ -60,6 +60,30 @@ app.get("/users/:id", async (req, res) => {
   //   .catch((e) => {
   //     res.status(500).send;
   //   });
+});
+
+//Update User by ID
+app.patch("/users/:id", async ({ params, body }, res) => {
+  const updates = Object.keys(body);
+  const allowedUpdates = ["name", "email", "password", "age"];
+  const isValidOperations = updates.every((update) =>
+    allowedUpdates.includes(update)
+  );
+
+  if (!isValidOperations)
+    return res.status(400).send({ error: "Invalid updates!" }); // Checking for allowed properties for updates (exp: not _id)
+
+  try {
+    const user = await User.findByIdAndUpdate(params.id, body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!user) return res.status(404).send();
+    res.send(user);
+  } catch (e) {
+    res.status(400).send();
+  }
 });
 
 app.post("/tasks", async (req, res) => {
