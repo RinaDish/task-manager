@@ -2,6 +2,7 @@ const express = require("express");
 require("./db/mongoose");
 const User = require("./models/user");
 const Task = require("./models/task");
+const isValidOperations = require("./utils");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -64,13 +65,7 @@ app.get("/users/:id", async (req, res) => {
 
 //Update User by ID
 app.patch("/users/:id", async ({ params, body }, res) => {
-  const updates = Object.keys(body);
-  const allowedUpdates = ["name", "email", "password", "age"];
-  const isValidOperations = updates.every((update) =>
-    allowedUpdates.includes(update)
-  );
-
-  if (!isValidOperations)
+  if (!isValidOperations(body, ["name", "email", "password", "age"]))
     return res.status(400).send({ error: "Invalid updates!" }); // Checking for allowed properties for updates (exp: not _id)
 
   try {
@@ -85,6 +80,8 @@ app.patch("/users/:id", async ({ params, body }, res) => {
     res.status(400).send();
   }
 });
+
+
 
 app.post("/tasks", async (req, res) => {
   //create task
@@ -138,6 +135,24 @@ app.get("/tasks/:id", async (req, res) => {
     res.send(task);
   } catch (e) {
     res.status(500).send(e);
+  }
+});
+
+//Update Task by ID
+app.patch("/tasks/:id", async ({ params, body }, res) => {
+  if (!isValidOperations(body, ["description", "completed"]))
+    return res.status(400).send({ error: "Invalid updates!" }); // Checking for allowed properties for updates (exp: not _id)
+
+  try {
+    const task = await Task.findByIdAndUpdate(params.id, body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!task) return res.status(404).send();
+    res.send(task);
+  } catch (e) {
+    res.status(400).send();
   }
 });
 
