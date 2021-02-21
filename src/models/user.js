@@ -36,6 +36,12 @@ const userSchema = new mongoose.Schema({
   ],
 });
 
+userSchema.virtual('tasks', {
+  ref: 'Task',
+  localField: '_id',
+  foreignField: 'owner'
+})
+
 userSchema.methods.generateAuthToken = async function () {
   //methods (for instance)
   const user = this;
@@ -47,7 +53,7 @@ userSchema.methods.generateAuthToken = async function () {
   return token;
 };
 
-userSchema.methods.getPublicProfile = function () {
+userSchema.methods.toJSON = function () {
   const user = this;
   const userObject = user.toObject();
 

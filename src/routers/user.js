@@ -30,7 +30,7 @@ router.post("/users/login", async ({ body }, res) => {
   try {
     const user = await User.findUserByCredentials(body.email, body.password); //statics method (for module)
     const token = await user.generateAuthToken(); //methods (for instance)
-    return res.send({ user: user.getPublicProfile(), token });
+    return res.send({ user, token });
   } catch (e) {
     res.status(400).send();
   }
@@ -61,10 +61,12 @@ router.post("/users/logoutall", auth, async (req, res) => {
   }
 });
 
+//view my profile
 router.get("/users/me", auth, async (req, res) => {
   res.send(req.user); //user in req comes from auth middleware
 });
 
+//view all users` profiles
 router.get("/users", auth, async (req, res) => {
   // User.find({})
   //   .then((users) => {
@@ -82,7 +84,8 @@ router.get("/users", auth, async (req, res) => {
   }
 });
 
-router.get("/users/:id", async (req, res) => {
+//view smbd`s profile
+router.get("/users/:id", auth, async (req, res) => {
   const _id = req.params.id;
 
   try {
@@ -104,13 +107,12 @@ router.get("/users/:id", async (req, res) => {
 });
 
 //Update User by ID
-router.patch("/users/:id", async ({ params, body }, res) => {
+router.patch("/users/me", auth, async ({body, user}, res) => {
   const updates = Object.keys(body);
   if (!isValidOperations(updates, ["name", "email", "password", "age"]))
     return res.status(400).send({ error: "Invalid updates!" }); // Checking for allowed properties for updates (exp: not _id)
 
   try {
-    const user = await User.findById(params.id);
     updates.forEach((update) => (user[update] = body[update]));
 
     await user.save();
@@ -122,12 +124,15 @@ router.patch("/users/:id", async ({ params, body }, res) => {
   }
 });
 
-router.delete("/users/:id", async ({ params }, res) => {
+//delete profile
+router.delete("/users/me", auth, async ( req, res) => {
   try {
-    const user = await User.findByIdAndDelete(params.id);
+    // const user = await User.findByIdAndDelete(req.user._id);
+    // if (!user) return res.status(404).send();
 
-    if (!user) return res.status(404).send();
-    res.send(user);
+    await req.user.remove()
+
+    res.send(req.user);
   } catch (e) {
     res.status(500);
   }
