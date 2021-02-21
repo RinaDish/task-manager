@@ -1,10 +1,12 @@
 const express = require("express");
 const User = require("../models/user");
 const isValidOperations = require("../utils");
+const auth = require("../middleware/auth");
 
 const router = new express.Router();
 
 router.post("/users", async (req, res) => {
+  //create user (signup)
   const user = new User(req.body);
 
   //
@@ -17,13 +19,53 @@ router.post("/users", async (req, res) => {
 
   try {
     await user.save();
-    res.status(201).send(user);
+    const token = await user.generateAuthToken();
+    return res.status(201).send({ user, token });
   } catch (e) {
     res.status(400).send(e);
   }
 });
 
-router.get("/users", async (req, res) => {
+router.post("/users/login", async ({ body }, res) => {
+  try {
+    const user = await User.findUserByCredentials(body.email, body.password); //statics method (for module)
+    const token = await user.generateAuthToken(); //methods (for instance)
+    return res.send({ user: user.getPublicProfile(), token });
+  } catch (e) {
+    res.status(400).send();
+  }
+});
+
+router.post("/users/logout", auth, async (req, res) => {
+  try {
+    req.user.tokens = req.user.tokens.filter(
+      (token) => token.token !== req.token
+    );
+    await req.user.save();
+
+    res.send();
+  } catch (error) {
+    res.status(500).send();
+  }
+});
+
+//close all sessions
+router.post("/users/logoutall", auth, async (req, res) => {
+  try {
+    req.user.tokens = [];
+    await req.user.save();
+
+    res.send();
+  } catch (error) {
+    res.status(500).send();
+  }
+});
+
+router.get("/users/me", auth, async (req, res) => {
+  res.send(req.user); //user in req comes from auth middleware
+});
+
+router.get("/users", auth, async (req, res) => {
   // User.find({})
   //   .then((users) => {
   //     res.send(users);

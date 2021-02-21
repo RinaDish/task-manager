@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+require('dotenv').config();
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
@@ -8,6 +10,7 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
+    unique: true,
     lowercase: true,
     trim: true,
     validate(value) {
@@ -23,8 +26,49 @@ const userSchema = new mongoose.Schema({
         throw new Error("Password is invalid");
     },
   },
+  tokens: [
+    {
+      token: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
 });
 
+userSchema.methods.generateAuthToken = async function () {
+  //methods (for instance)
+  const user = this;
+  const token = jwt.sign({ _id: user._id.toString() }, process.env.SECRET_SESSION);
+
+  user.tokens = user.tokens.concat({ token });
+  await user.save();
+
+  return token;
+};
+
+userSchema.methods.getPublicProfile = function () {
+  const user = this;
+  const userObject = user.toObject();
+
+  delete userObject.password;
+  delete userObject.tokens;
+
+  return userObject;
+};
+
+userSchema.statics.findUserByCredentials = async (email, pass) => {
+  //statics method (for module)
+  const user = await User.findOne({ email });
+  if (!user) throw Error("Unknown user!");
+
+  const isMatch = await bcrypt.compare(pass, user.password);
+  if (!isMatch) throw Error("Incorrect password!");
+
+  return user;
+};
+
+//Hash the plain text password before saving
 userSchema.pre("save", async function (next) {
   const user = this;
   if (user.isModified("password"))
