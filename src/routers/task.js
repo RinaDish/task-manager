@@ -22,19 +22,33 @@ router.post("/tasks", auth, async (req, res) => {
   }
 });
 
-router.get("/tasks", auth, async (req, res) => {
-  // Task.find({})
-  //   .then((tasks) => {
-  //     res.send(tasks);
-  //   })
-  //   .catch((e) => {
-  //     res.status(500).send();
-  //   });
+// GET /tasks?complited=true
+// GET /tasks?limit=10&skip=20
+// GET /tasks?sortBy=createdAt:desc(asc)
+router.get("/tasks", auth, async ({ user, query }, res) => {
+  const match = {};
+  const sort = {};
+
+  if (query.completed) match.completed = query.completed === "true";
+  if (query.sortBy) {
+    const parts = query.sortBy.split(":");
+    sort[parts[0]] = parts[1] === "desc" ? -1 : 1;
+  }
 
   try {
-    // const tasks = await Task.find({ owner: req.user._id });  //first way
-    await req.user.populate("tasks").execPopulate(); //second way
-    res.send(req.user.tasks);
+    // const tasks = await Task.find({ owner: user._id });  //first way
+    await user
+      .populate({
+        path: "tasks",
+        match,
+        options: {
+          limit: parseInt(query.limit),
+          skip: parseInt(query.limit) * parseInt(query.skip),
+          sort,
+        },
+      })
+      .execPopulate(); //second way
+    res.send(user.tasks);
   } catch (e) {
     res.status(500).send(e);
   }
@@ -87,7 +101,10 @@ router.patch("/tasks/:id", auth, async ({ user, params, body }, res) => {
 router.delete("/tasks/:id", auth, async ({ user, params }, res) => {
   try {
     // const task = await Task.findByIdAndDelete(params.id);
-    const task = await Task.findOneAndDelete({_id: params.id, owner: user._id})
+    const task = await Task.findOneAndDelete({
+      _id: params.id,
+      owner: user._id,
+    });
 
     if (!task) return res.status(404).send();
     res.send(task);

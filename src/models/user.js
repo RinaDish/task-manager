@@ -5,37 +5,40 @@ const jwt = require("jsonwebtoken");
 const Task = require("./task");
 require("dotenv").config();
 
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
-  age: { type: Number, default: 0 },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true,
-    validate(value) {
-      if (!validator.isEmail(value)) throw new Error("Email is invalid");
-    },
-  },
-  password: {
-    type: String,
-    required: true,
-    trim: true,
-    validate(pass) {
-      if (!validator.isStrongPassword(pass) || /pass?word/i.test(pass))
-        throw new Error("Password is invalid");
-    },
-  },
-  tokens: [
-    {
-      token: {
-        type: String,
-        required: true,
+const userSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    age: { type: Number, default: 0 },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      validate(value) {
+        if (!validator.isEmail(value)) throw new Error("Email is invalid");
       },
     },
-  ],
-});
+    password: {
+      type: String,
+      required: true,
+      trim: true,
+      validate(pass) {
+        if (!validator.isStrongPassword(pass) || /pass?word/i.test(pass))
+          throw new Error("Password is invalid");
+      },
+    },
+    tokens: [
+      {
+        token: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
+  },
+  { timestamps: true }
+);
 
 userSchema.virtual("tasks", {
   ref: "Task",
