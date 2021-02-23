@@ -63,12 +63,13 @@ userSchema.methods.generateAuthToken = async function () {
   return token;
 };
 
-userSchema.methods.toJSON = function () {
+userSchema.methods.toJSON = function () { //for non-showing unnecessary or secure data in response
   const user = this;
   const userObject = user.toObject();
 
   delete userObject.password;
   delete userObject.tokens;
+  delete userObject.avatar;
 
   return userObject;
 };
