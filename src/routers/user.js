@@ -1,7 +1,8 @@
-const express = require("express");
-const User = require("../models/user");
 const isValidOperations = require("../utils");
 const auth = require("../middleware/auth");
+const User = require("../models/user");
+const express = require("express");
+const multer = require("multer");
 
 const router = new express.Router();
 
@@ -107,7 +108,7 @@ router.get("/users/:id", auth, async (req, res) => {
 });
 
 //Update User by ID
-router.patch("/users/me", auth, async ({body, user}, res) => {
+router.patch("/users/me", auth, async ({ body, user }, res) => {
   const updates = Object.keys(body);
   if (!isValidOperations(updates, ["name", "email", "password", "age"]))
     return res.status(400).send({ error: "Invalid updates!" }); // Checking for allowed properties for updates (exp: not _id)
@@ -125,17 +126,56 @@ router.patch("/users/me", auth, async ({body, user}, res) => {
 });
 
 //delete profile
-router.delete("/users/me", auth, async ( req, res) => {
+router.delete("/users/me", auth, async (req, res) => {
   try {
     // const user = await User.findByIdAndDelete(req.user._id);
     // if (!user) return res.status(404).send();
 
-    await req.user.remove()
+    await req.user.remove();
 
     res.send(req.user);
   } catch (e) {
     res.status(500);
   }
 });
+
+const upload = multer({
+  //ToDo: move to separate file
+  dest: "avatars",
+  limits: {
+    fileSize: 1000000,
+  },
+  storage: multer.memoryStorage(), // it`s required for buffer field in the file
+  fileFilter(req, file, cb) {
+    if (!file.originalname.match(/\.(?:jpe?g|png)$/))
+      return cb(new Error("Invalid file extention"));
+
+    cb(undefined, true);
+  },
+});
+
+router.post(
+  "/users/me/avatar",
+  auth, //middleware for auth
+  upload.single("avatar"), //middleware for upload
+  async (req, res) => {
+    req.user.avatar = req.file.buffer;
+    console.log(req.file);
+    await req.user.save();
+    res.send();
+  }, //success
+  (error, req, res, next) => res.status(400).send({ error: error.message }) //error handling func
+);
+
+router.delete(
+  "/users/me/avatar",
+  auth,
+  async (req, res) => {
+    req.user.avatar = undefined;
+    await req.user.save();
+    res.send();
+  },
+  (error, req, res, next) => res.status(400).send({ error: error.message })
+);
 
 module.exports = router;

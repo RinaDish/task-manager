@@ -43,7 +43,7 @@ router.get("/tasks", auth, async ({ user, query }, res) => {
         match,
         options: {
           limit: parseInt(query.limit),
-          skip: parseInt(query.limit) * parseInt(query.skip),
+          skip: parseInt(query.skip),
           sort,
         },
       })
