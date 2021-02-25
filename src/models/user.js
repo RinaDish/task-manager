@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
 const validator = require("validator");
-const bcrypt = require("bcrypt");
+const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const Task = require("./task");
 require("dotenv").config();
 
@@ -43,14 +43,15 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+//virtuals are docs props that you can get or set but that do not saved to DB
 userSchema.virtual("tasks", {
   ref: "Task",
   localField: "_id",
   foreignField: "owner",
 });
 
+//methods (for instance)
 userSchema.methods.generateAuthToken = async function () {
-  //methods (for instance)
   const user = this;
   const token = jwt.sign(
     { _id: user._id.toString() },
@@ -63,7 +64,8 @@ userSchema.methods.generateAuthToken = async function () {
   return token;
 };
 
-userSchema.methods.toJSON = function () { //for non-showing unnecessary or secure data in response
+//for non-showing unnecessary or secure data in response
+userSchema.methods.toJSON = function () {
   const user = this;
   const userObject = user.toObject();
 
@@ -74,8 +76,8 @@ userSchema.methods.toJSON = function () { //for non-showing unnecessary or secur
   return userObject;
 };
 
+//statics method (for model)
 userSchema.statics.findUserByCredentials = async (email, pass) => {
-  //statics method (for module)
   const user = await User.findOne({ email });
   if (!user) throw Error("Unknown user!");
 
