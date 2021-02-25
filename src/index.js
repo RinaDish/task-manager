@@ -1,17 +1,17 @@
-const readmeRouter = require("./routers/readme");
-const userRouter = require("./routers/user");
-const taskRouter = require("./routers/task");
-const express = require("express");
+const express = require('express');
+const readmeRouter = require('./routers/readme');
+const userRouter = require('./routers/user');
+const taskRouter = require('./routers/task');
 
-require("dotenv").config();
-require("./db/mongoose");
+require('dotenv').config();
+require('./db/mongoose');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-//using routers
+// using routers
 app.use(readmeRouter);
 app.use(userRouter);
 app.use(taskRouter);

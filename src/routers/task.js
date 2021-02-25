@@ -1,12 +1,12 @@
-const express = require("express");
-const Task = require("../models/task");
-const auth = require("../middleware/auth");
-const {isValidOperations} = require("../utils");
+const express = require('express');
+const Task = require('../models/task');
+const auth = require('../middleware/auth');
+const { isValidOperations } = require('../utils');
 
 const router = new express.Router();
 
-//create task
-router.post("/tasks", auth, async (req, res) => {
+// create task
+router.post('/tasks', auth, async (req, res) => {
   const task = new Task({ ...req.body, owner: req.user._id });
 
   // task
@@ -25,36 +25,36 @@ router.post("/tasks", auth, async (req, res) => {
 // GET /tasks?complited=true
 // GET /tasks?limit=10&skip=20
 // GET /tasks?sortBy=createdAt:desc(asc)
-router.get("/tasks", auth, async ({ user, query }, res) => {
+router.get('/tasks', auth, async ({ user, query }, res) => {
   const match = {};
   const sort = {};
 
-  if (query.completed) match.completed = query.completed === "true";
+  if (query.completed) match.completed = query.completed === 'true';
   if (query.sortBy) {
-    const parts = query.sortBy.split(":");
-    sort[parts[0]] = parts[1] === "desc" ? -1 : 1;
+    const parts = query.sortBy.split(':');
+    sort[parts[0]] = parts[1] === 'desc' ? -1 : 1;
   }
 
   try {
     // const tasks = await Task.find({ owner: user._id });  //first way
     await user
       .populate({
-        path: "tasks",
+        path: 'tasks',
         match,
         options: {
-          limit: parseInt(query.limit),
-          skip: parseInt(query.skip),
+          limit: parseInt(query.limit, 10),
+          skip: parseInt(query.skip, 10),
           sort,
         },
       })
-      .execPopulate(); //second way
+      .execPopulate(); // second way
     res.send(user.tasks);
   } catch (e) {
     res.status(500).send(e);
   }
 });
 
-router.get("/tasks/:id", auth, async (req, res) => {
+router.get('/tasks/:id', auth, async (req, res) => {
   const _id = req.params.id;
 
   // Task.findById(_id)
@@ -68,19 +68,19 @@ router.get("/tasks/:id", auth, async (req, res) => {
 
   try {
     // const task = await Task.findById(_id);
-    const task = await Task.findOne({ _id, owner: req.user._id }); //possible to fetch only your own task
+    // possible to fetch only your own task
+    const task = await Task.findOne({ _id, owner: req.user._id });
     if (!task) return res.status(404).send();
-    res.send(task);
+    return res.send(task);
   } catch (e) {
-    res.status(500).send(e);
+    return res.status(500).send(e);
   }
 });
 
-//Update Task by ID
-router.patch("/tasks/:id", auth, async ({ user, params, body }, res) => {
+// Update Task by ID
+router.patch('/tasks/:id', auth, async ({ user, params, body }, res) => {
   const updates = Object.keys(body);
-  if (!isValidOperations(updates, ["description", "completed"]))
-    return res.status(400).send({ error: "Invalid updates!" }); // Checking for allowed properties for updates (exp: not _id)
+  if (!isValidOperations(updates, ['description', 'completed'])) return res.status(400).send({ error: 'Invalid updates!' }); // Checking for allowed properties for updates (exp: not _id)
 
   try {
     const task = await Task.findOne({
@@ -89,16 +89,16 @@ router.patch("/tasks/:id", auth, async ({ user, params, body }, res) => {
     });
     if (!task) return res.status(404).send();
 
-    updates.forEach((update) => (task[update] = body[update]));
+    updates.forEach((update) => { (task[update] = body[update]); });
 
     await task.save();
-    res.send(task);
+    return res.send(task);
   } catch (e) {
-    res.status(400).send(e);
+    return res.status(400).send(e);
   }
 });
 
-router.delete("/tasks/:id", auth, async ({ user, params }, res) => {
+router.delete('/tasks/:id', auth, async ({ user, params }, res) => {
   try {
     // const task = await Task.findByIdAndDelete(params.id);
     const task = await Task.findOneAndDelete({
@@ -107,9 +107,9 @@ router.delete("/tasks/:id", auth, async ({ user, params }, res) => {
     });
 
     if (!task) return res.status(404).send();
-    res.send(task);
+    return res.send(task);
   } catch (e) {
-    res.status(500);
+    return res.status(500);
   }
 });
 

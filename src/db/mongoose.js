@@ -1,6 +1,5 @@
-const validator = require("validator");
-const mongoose = require("mongoose");
-require("dotenv").config();
+const mongoose = require('mongoose');
+require('dotenv').config();
 
 mongoose.connect(process.env.MONGO_CONNECT_URL, {
   useNewUrlParser: true,

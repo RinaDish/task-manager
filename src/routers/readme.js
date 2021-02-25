@@ -1,13 +1,13 @@
-const express = require("express");
-const marked = require("marked");
-const fs = require("fs");
+const express = require('express');
+const marked = require('marked');
+const fs = require('fs');
 
 const router = new express.Router();
 
-router.get("/", async (req, res) => {
-  // render readme
+// render readme
+router.get('/', async (req, res) => {
   try {
-    const readme = fs.readFileSync("README.md", "utf-8");
+    const readme = fs.readFileSync('README.md', 'utf-8');
     const convertedReadme = await marked(readme);
 
     res.send(convertedReadme);
