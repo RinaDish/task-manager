@@ -10,7 +10,6 @@ const router = new express.Router();
 // create user (signup)
 router.post('/users', async (req, res) => {
   const user = new User(req.body);
-  const dbName = User.db.name;
 
   //
   // The same parts of code with promises
@@ -23,9 +22,9 @@ router.post('/users', async (req, res) => {
   try {
     await user.save();
     const token = await user.generateAuthToken();
-    return res.status(201).send({ user, token, dbName });
+    res.status(201).send({ user, token });
   } catch (e) {
-    return res.status(400).send(e);
+    res.status(400).send(e);
   }
 });
 

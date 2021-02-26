@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const Task = require('./task');
-require('dotenv').config();
 
 const userSchema = new mongoose.Schema(
   {
@@ -53,7 +52,9 @@ userSchema.virtual('tasks', {
 
 // methods (for instance)
 userSchema.methods.generateAuthToken = async function () {
+  console.log('ZASHEL`');
   const user = this;
+  console.log(process.env.SECRET_SESSION);
   const token = jwt.sign(
     { _id: user._id.toString() },
     process.env.SECRET_SESSION,
@@ -64,6 +65,16 @@ userSchema.methods.generateAuthToken = async function () {
 
   return token;
 };
+
+// userSchema.methods.generateAuthToken = async function () {
+//   const user = this
+//   const token = jwt.sign({ _id: user._id.toString() }, 'thisismynewcourse')
+
+//   user.tokens = user.tokens.concat({ token })
+//   await user.save()
+
+//   return token
+// }
 
 // for non-showing unnecessary or secure data in response
 userSchema.methods.toJSON = function () {
