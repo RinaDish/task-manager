@@ -35,21 +35,38 @@ test('Should signup a new user', async (done) => {
     })
     .expect(201);
 
-  // Asser that db was changed correctly
-
+  // Assert that db was changed correctly
   const user = await User.findById(response.body.user._id);
   expect(user).not.toBeNull();
+
+  // Assertions about the user from response
+  expect(response.body)
+    .toMatchObject({
+      user:
+      {
+        name: 'Janna',
+        email: 'jannasemail1@mail.com',
+      },
+      token: user.tokens[0].token,
+    });
+
+  expect(user.password).not.toBe('Jannas2!');
   done();
 });
 
 test('Should login existing user', async (done) => {
-  await request(app)
+  const response = await request(app)
     .post('/users/login')
     .send({
       email: userOne.email,
       password: userOne.password,
     })
     .expect(200);
+
+  const user = await User.findById(userOneId);
+  expect(user).not.toBeNull();
+
+  expect(user.tokens[1].token).toMatch(response.body.token);
   done();
 });
 
@@ -87,6 +104,10 @@ test('Should delete user', async (done) => {
     .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
     .send()
     .expect(200);
+
+  const user = await User.findById(userOneId);
+  expect(user).toBeNull();
+
   done();
 });
 
