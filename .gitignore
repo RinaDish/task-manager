@@ -1,8 +1,5 @@
 /node_modules
 /config
-<<<<<<< HEAD
-=======
 .env
->>>>>>> master
 /avatars
 */emails
