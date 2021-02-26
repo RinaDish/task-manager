@@ -118,3 +118,40 @@ test('Should not delete user', async (done) => {
     .expect(401);
   done();
 });
+
+test('Should upload avatar image', async (done) => {
+  await request(app)
+    .post('/users/me/avatar')
+    .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+    .attach('avatar', 'tests/fixtures/profile-pic.jpg')
+    .expect(200);
+
+  const user = await User.findById(userOneId);
+  // to check that avatar really was uploader
+  expect(user.avatar).toEqual(expect.any(Buffer));
+
+  done();
+});
+
+test('Should update user profile', async (done) => {
+  await request(app)
+    .patch('/users/me')
+    .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+    .send({ name: 'Helen' })
+    .expect(200);
+
+  const user = await User.findById(userOneId);
+  expect(user.name).toMatch('Helen');
+
+  done();
+});
+
+test('Should not update user profile', async (done) => {
+  await request(app)
+    .patch('/users/me')
+    .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+    .send({ location: 'Helen' })
+    .expect(400);
+
+  done();
+});
