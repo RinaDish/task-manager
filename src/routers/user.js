@@ -94,7 +94,7 @@ router.get('/users/:id', auth, async (req, res) => {
   }
 });
 
-// Update User by ID
+// Update my profile
 router.patch('/users/me', auth, async ({ body, user }, res) => {
   const updates = Object.keys(body);
 
