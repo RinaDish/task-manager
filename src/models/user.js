@@ -50,9 +50,7 @@ userSchema.virtual('tasks', {
 
 // methods (for instance)
 userSchema.methods.generateAuthToken = async function () {
-  console.log('ZASHEL`');
   const user = this;
-  console.log(process.env.SECRET_SESSION);
   const token = jwt.sign(
     { _id: user._id.toString() },
     process.env.SECRET_SESSION,
