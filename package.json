@@ -9,7 +9,7 @@
     "test": "env-cmd -f ./config/test.env jest --detectOpenHandles --forceExit"
   },
   "jest": {
-    "testEnviroment": "node"
+    "testEnvironment": "node"
   },
   "keywords": [],
   "author": "",
