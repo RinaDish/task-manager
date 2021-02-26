@@ -41,8 +41,6 @@ const userSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-const User = mongoose.model('User', userSchema);
-
 // virtuals are docs props that you can get or set but that do not saved to DB
 userSchema.virtual('tasks', {
   ref: 'Task',
@@ -114,5 +112,7 @@ userSchema.pre('remove', async function (next) {
 
   next();
 });
+
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;
