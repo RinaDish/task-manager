@@ -26,8 +26,9 @@ const userTwo = {
 };
 
 const badCreds = {
-  email: 'bademail@mail.com',
-  password: '123Pass!!',
+  name: '',
+  email: 'bademail',
+  password: '123Password',
 };
 
 const taskOne = {
