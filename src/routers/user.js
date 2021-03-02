@@ -1,9 +1,9 @@
 const express = require('express');
 const sharp = require('sharp');
-const { isValidOperations } = require('../utils');
+const { isAllowedForModification } = require('../utils');
 const auth = require('../middleware/auth');
 const User = require('../models/user');
-const { upload } = require('../utils');
+const { upload, successResponse, failureResponse } = require('../utils');
 
 const router = new express.Router();
 
@@ -11,31 +11,25 @@ const router = new express.Router();
 router.post('/users', async (req, res) => {
   const user = new User(req.body);
 
-  //
-  // The same parts of code with promises
-  //
-  // user
-  //   .save()
-  //   .then(() => res.send(user))
-  //   .catch((error) => res.status(400).send(error));
-
   try {
     await user.save();
     const token = await user.generateAuthToken();
-    res.status(201).send({ user, token });
+
+    successResponse(res, { user, token }, 201);
   } catch (e) {
-    res.status(400).send(e);
+    failureResponse(res, e);
   }
 });
 
 router.post('/users/login', async ({ body }, res) => {
   try {
-    // statics method (for module)
+    // statics method (for model)
     const user = await User.findUserByCredentials(body.email, body.password);
     const token = await user.generateAuthToken(); // methods (for instance)
-    return res.send({ user, token });
+
+    successResponse(res, { user, token });
   } catch (e) {
-    return res.status(400).send();
+    failureResponse(res, e);
   }
 });
 
@@ -46,9 +40,9 @@ router.post('/users/logout', auth, async (req, res) => {
     );
     await req.user.save();
 
-    res.send();
-  } catch (error) {
-    res.status(500).send();
+    successResponse(res);
+  } catch (e) {
+    failureResponse(res, e, 500);
   }
 });
 
@@ -58,24 +52,29 @@ router.post('/users/logoutall', auth, async (req, res) => {
     req.user.tokens = [];
     await req.user.save();
 
-    res.send();
-  } catch (error) {
-    res.status(500).send();
+    successResponse(res);
+  } catch (e) {
+    failureResponse(res, e, 500);
   }
 });
 
 // view my profile
 router.get('/users/me', auth, async (req, res) => {
-  res.send(req.user); // user in req comes from auth middleware
+  try {
+    successResponse(res, req.user); // user in req comes from auth middleware
+  } catch (e) {
+    failureResponse(res, e);
+  }
 });
 
 // view all users` profiles
 router.get('/users', auth, async (req, res) => {
   try {
     const users = await User.find({});
-    res.send(users);
+
+    successResponse(res, users);
   } catch (e) {
-    res.status(500).send();
+    failureResponse(res, e, 500);
   }
 });
 
@@ -87,9 +86,9 @@ router.get('/users/:id', auth, async (req, res) => {
     const user = await User.findById(id);
     if (!user) return res.status(404).send();
 
-    return res.send(user);
+    return successResponse(res, user);
   } catch (e) {
-    return res.status(500).send();
+    return failureResponse(res, e, 500);
   }
 });
 
@@ -98,30 +97,29 @@ router.patch('/users/me', auth, async ({ body, user }, res) => {
   const updates = Object.keys(body);
 
   // Checking for allowed properties for updates (e.g.: not _id)
-  if (!isValidOperations(updates, ['name', 'email', 'password', 'age'])) return res.status(400).send({ error: 'Invalid updates!' });
+  if (!isAllowedForModification(updates, ['name', 'email', 'password', 'age'])) return failureResponse(res, { error: 'Invalid updates!' });
 
   try {
     updates.forEach((update) => {
       (user[update] = body[update]);
     });
-
     await user.save();
+    if (!user) return failureResponse(res, {}, 500);
 
-    if (!user) return res.status(404).send();
-    return res.send(user);
+    return successResponse(res, user);
   } catch (e) {
-    return res.status(400).send();
+    return failureResponse(res, e);
   }
 });
 
 // delete profile
-router.delete('/users/me', auth, async (req, res) => {
+router.delete('/users/me', auth, async ({ user }, res) => {
   try {
-    await req.user.remove();
+    await user.remove();
 
-    res.send(req.user);
+    successResponse(res, user);
   } catch (e) {
-    res.status(500);
+    failureResponse(res, e, 500);
   }
 });
 
@@ -135,35 +133,38 @@ router.post(
       .resize({ width: 250, height: 250 })
       .png()
       .toBuffer();
-
     req.user.avatar = buffer;
     await req.user.save();
-    res.send();
+
+    successResponse(res);
   }, // success
-  (error, req, res) => res.status(400).send({ error: error.message }),
+  (error, req, res) => failureResponse(res, { error: error.message }),
   // error handling func (fourth arguments is next)
 );
 
 router.delete(
   '/users/me/avatar',
   auth,
-  async (req, res) => {
-    req.user.avatar = undefined;
-    await req.user.save();
-    res.send();
+  async ({ user }, res) => {
+    try {
+      user.avatar = undefined;
+      await user.save();
+
+      successResponse(res);
+    } catch (e) { failureResponse(res, { error: e.message }); }
   },
-  (error, req, res) => res.status(400).send({ error: error.message }), // (fourth arguments is next)
 );
 
 // use url for <img> tag in html (src attribute)
-router.get('/users/:id/avatar', async (req, res) => {
+router.get('/users/:id/avatar', async ({ params }, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(params.id);
     if (!user || !user.avatar) throw new Error();
     res.set('Content-Type', 'image/png');
-    res.send(user.avatar);
+
+    successResponse(res, user.avatar);
   } catch (e) {
-    res.status(404).send();
+    failureResponse(res, e, 404);
   }
 });
 

@@ -1,6 +1,10 @@
 const multer = require('multer');
 
-const isValidOperations = (updates, allowedProps) => updates.every(
+const successResponse = (response, data, status = 200) => response.status(status).send(data);
+
+const failureResponse = (response, error, status = 400) => response.status(status).send(error);
+
+const isAllowedForModification = (updates, allowedProps) => updates.every(
   (update) => allowedProps.includes(update),
 );
 
@@ -18,4 +22,6 @@ const upload = multer({
   },
 });
 
-module.exports = { isValidOperations, upload };
+module.exports = {
+  isAllowedForModification, upload, successResponse, failureResponse,
+};
