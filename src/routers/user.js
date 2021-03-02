@@ -7,6 +7,36 @@ const { upload, successResponse, failureResponse } = require('../utils');
 
 const router = new express.Router();
 
+/**
+ * @swagger
+ *
+ * /users:
+ *   post:
+ *     description: create user
+ *     parameters:
+ *       - name: name
+ *         in: formData
+ *         required: true
+ *         type: string
+ *       - name: password
+ *         in: formData
+ *         required: true
+ *         type: string
+ *       - name: email
+ *         in: formData
+ *         required: true
+ *         type: string
+ *       - name: age
+ *         in: formData
+ *         required: false
+ *         type: number
+ *     responses:
+ *        201:
+ *          description: success
+ *        400:
+ *          description: failure
+ */
+
 // create user (signup)
 router.post('/users', async (req, res) => {
   const user = new User(req.body);

@@ -1,22 +1,29 @@
 const express = require('express');
 require('./db/mongoose');
+const swaggerJsDoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 const userRouter = require('./routers/user');
 const taskRouter = require('./routers/task');
 
-// function error(err, req, res, next) {
-//   // log it
-//   if (!test) console.error(err.stack);
+const swaggerOptions = {
+  swaggerDefinition: {
+    info: {
+      title: 'API',
+      description: 'API Information',
+    },
+    servers: ['http://localhost:3000'],
+  },
+  apis: ['src/routers/*.js'],
+};
 
-//   // respond with 500 "Internal Server Error".
-//   res.status(500);
-//   res.send('Internal Server Error');
-// }
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
 const app = express();
+
+app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.use(express.json());
 app.use(userRouter);
 app.use(taskRouter);
-// app.use(error);
 
 module.exports = app;
