@@ -7,7 +7,7 @@ const {
 
 beforeEach(setupDatabase); // delete all users from test database, create one new user
 
-test('Should signup a new user', async (done) => {
+test('Should signup a new user', async () => {
   const { body } = await request(app)
     .post('/users')
     .send({
@@ -33,10 +33,9 @@ test('Should signup a new user', async (done) => {
     });
 
   expect(user.password).not.toBe('Jannas2!');
-  done();
 });
 
-test('Should not signup a new user', async (done) => {
+test('Should not signup a new user', async () => {
   const { body } = await request(app)
     .post('/users')
     .send({
@@ -47,10 +46,9 @@ test('Should not signup a new user', async (done) => {
   expect(body.errors.name).not.toBeUndefined();
   expect(body.errors.email).not.toBeUndefined();
   expect(body.errors.password).not.toBeUndefined();
-  done();
 });
 
-test('Should login existing user', async (done) => {
+test('Should login existing user', async () => {
   const { body } = await request(app)
     .post('/users/login')
     .send({
@@ -63,11 +61,10 @@ test('Should login existing user', async (done) => {
   expect(user).not.toBeNull();
 
   expect(user.tokens[1].token).toMatch(body.token);
-  done();
 });
 
 describe('Should not login', () => {
-  test('Existing user', async (done) => {
+  test('Existing user', async () => {
     await request(app)
       .post('/users/login')
       .send({
@@ -75,10 +72,9 @@ describe('Should not login', () => {
         password: badCreds.password,
       })
       .expect(404);
-    done();
   });
 
-  test('Non existing user', async (done) => {
+  test('Non existing user', async () => {
     await request(app)
       .post('/users/login')
       .send({
@@ -86,11 +82,10 @@ describe('Should not login', () => {
         password: badCreds.password,
       })
       .expect(400);
-    done();
   });
 });
 
-test('Should get profile user', async (done) => {
+test('Should get profile user', async () => {
   const { body } = await request(app)
     .get('/users/me')
     .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
@@ -98,18 +93,16 @@ test('Should get profile user', async (done) => {
     .expect(200);
 
   expect(body._id).toMatch(userOneId.toString());
-  done();
 });
 
-test('Should not get profile user', async (done) => {
+test('Should not get profile user', async () => {
   await request(app)
     .get('/users/me')
     .send()
     .expect(401);
-  done();
 });
 
-test('Should get profile user by id', async (done) => {
+test('Should get profile user by id', async () => {
   const { body } = await request(app)
     .get(`/users/${userTwo._id}`)
     .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
@@ -117,29 +110,26 @@ test('Should get profile user by id', async (done) => {
     .expect(200);
 
   expect(body._id).toMatch(userTwoId.toString());
-  done();
 });
 
 describe('View user`s profile', () => {
-  test('Should not get profile by id cause of unauthorization', async (done) => {
+  test('Should not get profile by id cause of unauthorization', async () => {
     await request(app)
       .get(`/users/${userTwo._id}`)
       .send()
       .expect(401);
-    done();
   });
 
-  test('Should not get profile by id cause of non existing user', async (done) => {
+  test('Should not get profile by id cause of non existing user', async () => {
     await request(app)
       .get('/users/60377fc4a6f4490015b177e6')
       .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
       .send()
       .expect(404);
-    done();
   });
 });
 
-test('Should get all user', async (done) => {
+test('Should get all user', async () => {
   const { body } = await request(app)
     .get('/users')
     .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
@@ -147,18 +137,16 @@ test('Should get all user', async (done) => {
     .expect(200);
 
   expect(body).toHaveLength(2);
-  done();
 });
 
-test('Should not get all user', async (done) => {
+test('Should not get all user', async () => {
   await request(app)
     .get('/users')
     .send()
     .expect(401);
-  done();
 });
 
-test('Should delete user', async (done) => {
+test('Should delete user', async () => {
   await request(app)
     .delete('/users/me')
     .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
@@ -167,11 +155,9 @@ test('Should delete user', async (done) => {
 
   const user = await User.findById(userOneId);
   expect(user).toBeNull();
-
-  done();
 });
 
-test('Should not delete user', async (done) => {
+test('Should not delete user', async () => {
   await request(app)
     .delete('/users/me')
     .send()
@@ -179,7 +165,6 @@ test('Should not delete user', async (done) => {
 
   const user = await User.findById(userOneId);
   expect(user).not.toBeNull();
-  done();
 });
 
 const uploadAvatar = async () => {
@@ -191,7 +176,7 @@ const uploadAvatar = async () => {
 };
 
 describe('Upload avatar', () => {
-  test('Should not upload avatar image', async (done) => {
+  test('Should not upload avatar image', async () => {
     await request(app)
       .post('/users/me/avatar')
       .attach('avatar', 'tests/fixtures/profile-pic.jpg')
@@ -199,34 +184,31 @@ describe('Upload avatar', () => {
 
     const user = await User.findById(userOneId);
     expect(user.avatar).toBeUndefined();
-    done();
   });
 
-  test('Should upload avatar image', async (done) => {
+  test('Should upload avatar image', async () => {
     const response = await uploadAvatar();
     expect(response.statusCode).toBe(200);
 
     const user = await User.findById(userOneId);
     // to check that avatar really was uploader
     expect(user.avatar).toEqual(expect.any(Buffer));
-    done();
   });
 });
 
 describe('Delete avatar', () => {
   beforeEach(uploadAvatar);
 
-  test('Should not delete avatar image', async (done) => {
+  test('Should not delete avatar image', async () => {
     await request(app)
       .delete('/users/me/avatar')
       .expect(401);
 
     const user = await User.findById(userOneId);
     expect(user.avatar).toEqual(expect.any(Buffer));
-    done();
   });
 
-  test('Should delete avatar image', async (done) => {
+  test('Should delete avatar image', async () => {
     await request(app)
       .delete('/users/me/avatar')
       .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
@@ -234,12 +216,10 @@ describe('Delete avatar', () => {
 
     const user = await User.findById(userOneId);
     expect(user.avatar).toBeUndefined();
-
-    done();
   });
 });
 
-test('Should update user profile', async (done) => {
+test('Should update user profile', async () => {
   await request(app)
     .patch('/users/me')
     .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
@@ -248,11 +228,9 @@ test('Should update user profile', async (done) => {
 
   const user = await User.findById(userOneId);
   expect(user.name).toMatch('Helen');
-
-  done();
 });
 
-test('Should not update user profile', async (done) => {
+test('Should not update user profile', async () => {
   // Invalid props
   await request(app)
     .patch('/users/me')
@@ -268,12 +246,10 @@ test('Should not update user profile', async (done) => {
 
   const user = await User.findById(userOneId);
   expect(user.name).not.toMatch('Olga');
-
-  done();
 });
 
 describe('Logout', () => {
-  test('Should not logout cause of unauthorization', async (done) => {
+  test('Should not logout cause of unauthorization', async () => {
     await request(app)
       .post('/users/logout')
       .send()
@@ -282,10 +258,9 @@ describe('Logout', () => {
     const user = await User.findById(userOneId);
     const findToken = user.tokens.find(({ token }) => token === userOne.tokens[0].token);
     expect(findToken).not.toBeUndefined();
-    done();
   });
 
-  test('Should logout', async (done) => {
+  test('Should logout', async () => {
     await request(app)
       .post('/users/logout')
       .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
@@ -295,10 +270,9 @@ describe('Logout', () => {
     const user = await User.findById(userOneId);
     const findToken = user.tokens.find(({ token }) => token === userOne.tokens[0].token);
     expect(findToken).toBeUndefined();
-    done();
   });
 
-  test('Should not close all sessions cause of unauthorization', async (done) => {
+  test('Should not close all sessions cause of unauthorization', async () => {
     await request(app)
       .post('/users/logoutall')
       .send()
@@ -307,10 +281,9 @@ describe('Logout', () => {
     const user = await User.findById(userOneId);
     // const findToken = user.tokens.find(({ token }) => token === userOne.tokens[0].token);
     expect(user.tokens).not.toHaveLength(0);
-    done();
   });
 
-  test('Should close all sessions', async (done) => {
+  test('Should close all sessions', async () => {
     await request(app)
       .post('/users/logoutall')
       .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
@@ -320,6 +293,5 @@ describe('Logout', () => {
     const user = await User.findById(userOneId);
     // const findToken = user.tokens.find(({ token }) => token === userOne.tokens[0].token);
     expect(user.tokens).toHaveLength(0);
-    done();
   });
 });
