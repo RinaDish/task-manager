@@ -1,0 +1,45 @@
+paths:
+  /users:
+    post:
+      description: signup
+      parameters:
+        - name: name
+          in: formData
+          required: true
+          type: string
+        - name: password
+          in: formData
+          required: true
+          type: string
+        - name: email
+          in: formData
+          required: true
+          type: string
+        - name: age
+          in: formData
+          required: false
+          type: number
+      responses:
+         201:
+           description: success
+         400:
+           description: failure
+  /users/login:         
+   post:
+      description: login
+      parameters:
+        - name: password
+          in: formData
+          required: true
+          type: string
+        - name: email
+          in: formData
+          required: true
+          type: string
+      responses:
+         200:
+           description: success
+         400:
+           description: failure
+         404:
+          description: failure

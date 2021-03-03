@@ -13,14 +13,14 @@ const swaggerOptions = {
     },
     servers: ['http://localhost:3000'],
   },
-  apis: ['src/routers/*.js'],
+  apis: ['swagger.yml'],
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
 const app = express();
 
-app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.use(express.json());
 app.use(userRouter);

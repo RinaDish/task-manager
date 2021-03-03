@@ -7,36 +7,6 @@ const { upload, successResponse, failureResponse } = require('../utils');
 
 const router = new express.Router();
 
-/**
- * @swagger
- *
- * /users:
- *   post:
- *     description: create user
- *     parameters:
- *       - name: name
- *         in: formData
- *         required: true
- *         type: string
- *       - name: password
- *         in: formData
- *         required: true
- *         type: string
- *       - name: email
- *         in: formData
- *         required: true
- *         type: string
- *       - name: age
- *         in: formData
- *         required: false
- *         type: number
- *     responses:
- *        201:
- *          description: success
- *        400:
- *          description: failure
- */
-
 // create user (signup)
 router.post('/users', async (req, res) => {
   const user = new User(req.body);
@@ -53,13 +23,14 @@ router.post('/users', async (req, res) => {
 
 router.post('/users/login', async ({ body }, res) => {
   try {
-    // statics method (for model)
-    const user = await User.findUserByCredentials(body.email, body.password);
+  // statics method (for model)
+    const { user, error } = await User.findUserByCredentials(body.email, body.password);
+    if (error) return failureResponse(res, { error }, 404);
     const token = await user.generateAuthToken(); // methods (for instance)
 
-    successResponse(res, { user, token });
+    return successResponse(res, { user, token });
   } catch (e) {
-    failureResponse(res, e);
+    return failureResponse(res, e);
   }
 });
 
@@ -114,7 +85,7 @@ router.get('/users/:id', auth, async (req, res) => {
 
   try {
     const user = await User.findById(id);
-    if (!user) return res.status(404).send();
+    if (!user) return failureResponse(res, { error: 'User not found' }, 404);
 
     return successResponse(res, user);
   } catch (e) {
@@ -134,7 +105,7 @@ router.patch('/users/me', auth, async ({ body, user }, res) => {
       (user[update] = body[update]);
     });
     await user.save();
-    if (!user) return failureResponse(res, {}, 500);
+    if (!user) return failureResponse(res, { error: 'User not found' }, 404);
 
     return successResponse(res, user);
   } catch (e) {

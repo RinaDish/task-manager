@@ -87,12 +87,12 @@ userSchema.methods.toJSON = function () {
 // statics method (for model)
 userSchema.statics.findUserByCredentials = async (email, pass) => {
   const user = await User.findOne({ email });
-  if (!user) throw Error('Unknown user!');
+  if (!user) return { error: 'Unknown user!' };
 
   const isMatch = await bcrypt.compare(pass, user.password);
-  if (!isMatch) throw Error('Incorrect password!');
+  if (!isMatch) return 'Incorrect password!';
 
-  return user;
+  return { user };
 };
 
 // Hash the plain text password before saving
