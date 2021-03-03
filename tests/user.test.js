@@ -74,7 +74,7 @@ describe('Should not login', () => {
         email: badCreds.email,
         password: badCreds.password,
       })
-      .expect(400);
+      .expect(404);
     done();
   });
 
