@@ -5,7 +5,7 @@ const fs = require('fs');
 const router = new express.Router();
 
 // render readme
-router.get('/', async (req, res) => {
+router.get('/readme', async (req, res) => {
   try {
     const readme = fs.readFileSync('README.md', 'utf-8');
     const convertedReadme = await marked(readme);

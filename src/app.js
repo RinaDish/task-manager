@@ -21,10 +21,11 @@ const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
 const app = express();
 
-app.use(readmeRouter);
-// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.get('/', async (req, res) => res.redirect('/api-docs'));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.use(express.json());
+app.use(readmeRouter);
 app.use(userRouter);
 app.use(taskRouter);
 
