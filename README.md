@@ -5,6 +5,7 @@
 
 - [How It Works](#Howitworks)
   - [Running](#Running)
+  - [Unit-tests](#Unit-tests)
 - [`API`](#API)
 
 ## How It Works
@@ -23,6 +24,8 @@ For running in developer mode (with nodemon):
 $ npm run dev
 ```
 
+### Unit-tests
+
 Run unit-tests:
 
 ```sh
@@ -30,3 +33,8 @@ npm test
 ```
 
 ## API
+
+Use <b>`/api-docs`</b> endpoint to view Swagger Docs
+
+
+[https://dish-task-manager.herokuapp.com/api-docs](https://dish-task-manager.herokuapp.com/api-docs)

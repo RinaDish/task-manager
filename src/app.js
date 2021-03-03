@@ -4,6 +4,7 @@ const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const userRouter = require('./routers/user');
 const taskRouter = require('./routers/task');
+const readmeRouter = require('./routers/readme');
 
 const swaggerOptions = {
   swaggerDefinition: {
@@ -20,7 +21,8 @@ const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
 const app = express();
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use(readmeRouter);
+// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.use(express.json());
 app.use(userRouter);
